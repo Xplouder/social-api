@@ -55,14 +55,14 @@ class UsersController extends Controller
         // Check if the user is authenticated
         if ($authenticatedUser) {
             // Authenticated
-            if ($authenticatedUser->id == $user->id) {  // consulting his own posts
+            if ($authenticatedUser->_id == $user->_id) {  // consulting his own posts
                 // checking own profile
                 // fetch the last updated posts from user with pagination parameters (perPage and page)
                 $postsWithPagination = $user
                     ->posts()
                     ->orderBy('created_at', 'desc')
                     ->paginate($request['perPage']);
-            } else if (User::find($authenticatedUser->id)->friends()->find($user->id)) { // consulting a friend posts
+            } else if (User::find($authenticatedUser->_id)->friends()->find($user->_id)) { // consulting a friend posts
                 // friends
                 // all the posts (public + private)
                 $postsWithPagination = $user
@@ -89,7 +89,7 @@ class UsersController extends Controller
         }
 
         // remove 'posts' relation
-        $response = User::find($user->id)->toArray();
+        $response = User::find($user->_id)->toArray();
         unset($response['posts']);
 
         $response = array_merge($response, ['posts' => $postsWithPagination->toArray()]);
@@ -194,11 +194,11 @@ class UsersController extends Controller
         } else {
             // Retrieve all the public posts from everyone and private posts of authenticated user and his friends
             $publicPosts = DB::table('posts')->where('public', 'yes');
-            $authenticatedUserPosts = User::find($authenticatedUser->id)->posts();
+            $authenticatedUserPosts = User::find($authenticatedUser->_id)->posts();
             $privatePostsOfFriends = DB::table('posts')
-                ->join('users', 'users.id', '=', 'posts.user_id')
-                ->join('friends', 'users.id', '=', 'friends.user_id_1')
-                ->where('users.id', '!=', $authenticatedUser->id)
+                ->join('users', 'users._id', '=', 'posts.user_id')
+                ->join('friends', 'users._id', '=', 'friends.user_id_1')
+                ->where('users._id', '!=', $authenticatedUser->_id)
                 ->where('posts.public', 'no')
                 ->select('posts.*');
             $union = $publicPosts->union($privatePostsOfFriends)->union($authenticatedUserPosts)->orderBy('created_at', 'desc');

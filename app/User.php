@@ -2,15 +2,20 @@
 
 namespace App;
 
-use Illuminate\Database\Eloquent\Model;
+//use Illuminate\Database\Eloquent\Model;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use Jenssegers\Mongodb\Eloquent\Model as Eloquent;
 
-class User extends Model implements AuthenticatableContract, CanResetPasswordContract
+class User extends Eloquent implements AuthenticatableContract, CanResetPasswordContract
 {
     use Authenticatable, CanResetPassword;
+
+    protected $connection = 'mongodb';
+
+    protected $collection = 'users';
 
     protected $table = 'users';
 
