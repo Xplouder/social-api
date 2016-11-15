@@ -16,7 +16,7 @@ class FriendsTable extends Migration
         Schema::create('friends', function (Blueprint $table) {
             $table->integer('user_id_1')->unsigned();
             $table->integer('user_id_2')->unsigned();
-//            $table->primary(['user_id_1', 'user_id_2'], 'id_friendship');
+            $table->primary(['user_id_1', 'user_id_2'], 'id_friendship');
         });
     }
 
@@ -27,6 +27,6 @@ class FriendsTable extends Migration
      */
     public function down()
     {
-        Schema::drop('friends');
+        Schema::dropIfExists('friends');
     }
 }

@@ -13,9 +13,9 @@ class User extends Eloquent implements AuthenticatableContract, CanResetPassword
 {
     use Authenticatable, CanResetPassword;
 
-    protected $connection = 'mongodb';
+    protected $connection = 'mysql';
 
-    protected $collection = 'users';
+//    protected $collection = 'users';
 
     protected $table = 'users';
 

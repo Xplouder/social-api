@@ -1,11 +1,15 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
+//use Illuminate\Support\Facades\Schema;
+//use Illuminate\Database\Schema\Blueprint;
+use Jenssegers\Mongodb\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
 class CreatePostsTable extends Migration
 {
+
+    protected $connection = 'mongodb';
+
     /**
      * Run the migrations.
      *
@@ -13,6 +17,17 @@ class CreatePostsTable extends Migration
      */
     public function up()
     {
+        // Mongo version
+        Schema::connection($this->connection)->create('posts', function (Blueprint $collection) {
+            $collection->integer('user_id');
+            $collection->string('body_text');
+            $collection->string('body_image');
+            $collection->enum('social', ['yes', 'no'])->default('no');
+            $collection->timestamps();
+            $collection->softDeletes();
+        });
+
+        // MySql version
 //        Schema::create('posts', function (Blueprint $table) {
 //            $table->increments('id');
 //            $table->integer('user_id')->unsigned();
@@ -23,20 +38,7 @@ class CreatePostsTable extends Migration
 //            $table->timestamps();
 //            $table->softDeletes();
 //        });
-        Schema::create('posts', function($collection)
-        {
-//            $collection->increments('id');
-//            $collection->index('id');
-            $collection->integer('user_id');
-//            $collection->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-//            $collection->index('user_id');
 
-            $collection->string('body_text');
-            $collection->string('body_image');
-            $collection->enum('social', ['yes', 'no'])->default('no');
-            $collection->timestamps();
-            $collection->softDeletes();
-        });
     }
 
     /**
@@ -46,6 +48,6 @@ class CreatePostsTable extends Migration
      */
     public function down()
     {
-        Schema::drop('posts');
+        Schema::connection($this->connection)->drop('posts');
     }
 }

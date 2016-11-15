@@ -52,25 +52,25 @@ class FriendsController extends Controller
 
         $friend = User::find($request['friend']);
         if (!$friend) {
-            return response()->json(['message' => 'User with _id ' . $request['friend'] . ' not found'], 404);
+            return response()->json(['message' => 'User with id ' . $request['friend'] . ' not found'], 404);
         }
 
         $authenticatedUser = Auth::user();
 
-        if ($request['friend'] == $authenticatedUser->_id) {
+        if ($request['friend'] == $authenticatedUser->id) {
             return response()->json(['message' => 'You can not be friend of yourself :)'], 400);
         }
 
         try {
-            User::find($authenticatedUser->_id)->friends()->attach($friend->_id);
-            User::find($friend->_id)->friends()->attach($authenticatedUser->_id);
+            User::find($authenticatedUser->id)->friends()->attach($friend->id);
+            User::find($friend->id)->friends()->attach($authenticatedUser->id);
         } catch (QueryException $e) {
-            return response()->json(['message' => 'User ' . $authenticatedUser->_id . ' is already friend of user ' . $friend->_id], 409);
+            return response()->json(['message' => 'User ' . $authenticatedUser->id . ' is already friend of user ' . $friend->id], 409);
         }
 
         return response()->json([
             'message' =>
-                'User _id-' . $authenticatedUser->_id . ' and _id-' . $friend->_id . ' are now friends.'], 201);
+                'User id-' . $authenticatedUser->id . ' and id-' . $friend->id . ' are now friends.'], 201);
     }
 
     /**
@@ -88,6 +88,6 @@ class FriendsController extends Controller
      */
     public function index(){
         $authenticatedUser = Auth::user();
-        return response()->json(User::find($authenticatedUser->_id)->friends()->paginate(Input::get('perPage', 15)), 201);
+        return response()->json(User::find($authenticatedUser->id)->friends()->paginate(Input::get('perPage', 15)), 201);
     }
 }

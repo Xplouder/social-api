@@ -58,7 +58,7 @@ class PostsController extends Controller
             $url = Storage::putFile('images', $data['body_image'], 'public');
             $post->body_image = pathinfo($url, PATHINFO_BASENAME);
         }
-        $post->user_id = Auth::user()->_id;
+        $post->user_id = Auth::user()->id;
         $post->save();
 
         return response()->json($post, 201);
@@ -124,7 +124,7 @@ class PostsController extends Controller
         }
 
         // Check permissions
-        if (Auth::user()->_id != $post->user_id) {
+        if (Auth::user()->id != $post->user_id) {
             return response()->json(['message' => 'You haven\'t permission to change this entry',], 401);
         }
 
@@ -170,7 +170,7 @@ class PostsController extends Controller
         }
 
         // Check permissions
-        if (Auth::user()->_id != $post->user_id) {
+        if (Auth::user()->id != $post->user_id) {
             return response()->json(['message' => 'You haven\'t permission to delete this entry'], 401);
         }
 
