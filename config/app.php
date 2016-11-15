@@ -171,7 +171,11 @@ return [
         Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
         Laravel\Socialite\SocialiteServiceProvider::class,
         Mpociot\ApiDoc\ApiDocGeneratorServiceProvider::class,
-        Jenssegers\Mongodb\MongodbServiceProvider::class,
+
+        Moloquent\MongodbServiceProvider::class,
+//        Moloquent\Auth\PasswordResetServiceProvider::class,
+//        Moloquent\MongodbQueueServiceProvider::class,
+//        Moloquent\Passport\PassportServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -230,7 +234,7 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
 
-        'JWTAuth'   => Tymon\JWTAuth\Facades\JWTAuth::class,
+        'JWTAuth' => Tymon\JWTAuth\Facades\JWTAuth::class,
         'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class,
         'Socialite' => Laravel\Socialite\Facades\Socialite::class,
 

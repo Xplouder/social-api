@@ -2,13 +2,13 @@
 
 namespace App;
 
-use Jenssegers\Mongodb\Eloquent\Model as Eloquent;
-//use Illuminate\Database\Eloquent\Model;
-use Jenssegers\Mongodb\Eloquent\HybridRelations;
+use Moloquent\Eloquent\Model as Moloquent;
+use Moloquent\Eloquent\HybridRelations;
+use Moloquent\Eloquent\SoftDeletes;
 
-class Post extends Eloquent
+class Post extends Moloquent
 {
-    use HybridRelations;
+    use HybridRelations, SoftDeletes;
 
     protected $connection = 'mongodb';
 

@@ -1,7 +1,7 @@
 <?php
 /**
  * A helper file for Laravel 5, to provide autocomplete information to your IDE
- * Generated for Laravel 5.3.22 on 2016-11-12.
+ * Generated for Laravel 5.3.23 on 2016-11-15.
  *
  * @author Barry vd. Heuvel <barryvdh@gmail.com>
  * @see https://github.com/barryvdh/laravel-ide-helper
@@ -6854,7 +6854,8 @@ namespace {
          * @static 
          */
         public static function broker($name = null){
-            return \Illuminate\Auth\Passwords\PasswordBrokerManager::broker($name);
+            //Method inherited from \Illuminate\Auth\Passwords\PasswordBrokerManager            
+            return \Moloquent\Auth\PasswordBrokerManager::broker($name);
         }
         
         /**
@@ -6864,7 +6865,8 @@ namespace {
          * @static 
          */
         public static function getDefaultDriver(){
-            return \Illuminate\Auth\Passwords\PasswordBrokerManager::getDefaultDriver();
+            //Method inherited from \Illuminate\Auth\Passwords\PasswordBrokerManager            
+            return \Moloquent\Auth\PasswordBrokerManager::getDefaultDriver();
         }
         
         /**
@@ -6875,7 +6877,8 @@ namespace {
          * @static 
          */
         public static function setDefaultDriver($name){
-            \Illuminate\Auth\Passwords\PasswordBrokerManager::setDefaultDriver($name);
+            //Method inherited from \Illuminate\Auth\Passwords\PasswordBrokerManager            
+            \Moloquent\Auth\PasswordBrokerManager::setDefaultDriver($name);
         }
         
     }
@@ -9845,12 +9848,12 @@ namespace {
          *
          * @param string $table
          * @param \Closure $callback
-         * @return \Illuminate\Database\Schema\Blueprint 
+         * @return void 
          * @static 
          */
         public static function table($table, $callback){
             //Method inherited from \Illuminate\Database\Schema\Builder            
-            return \Illuminate\Database\Schema\MySqlBuilder::table($table, $callback);
+            \Illuminate\Database\Schema\MySqlBuilder::table($table, $callback);
         }
         
         /**
@@ -12220,6 +12223,30 @@ namespace {
             //Method inherited from \Illuminate\Support\Manager            
             return \Laravel\Socialite\SocialiteManager::getDrivers();
         }
+        
+    }
+
+
+}
+
+namespace Laravel\Passport{
+
+    class AuthCode extends \Moloquent\Passport\AuthCode{
+        
+    }
+
+
+    class Client extends \Moloquent\Passport\Client{
+        
+    }
+
+
+    class PersonalAccessClient extends \Moloquent\Passport\PersonalAccessClient{
+        
+    }
+
+
+    class Token extends \Moloquent\Passport\Token{
         
     }
 

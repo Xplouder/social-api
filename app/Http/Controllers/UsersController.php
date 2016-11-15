@@ -189,35 +189,44 @@ class UsersController extends Controller
 
         if (!$authenticatedUser) {
             // Retrieve all the public posts from everyone
-            $posts = DB::table('posts')->where('public', 'yes')->orderBy('created_at', 'desc')->paginate(15);
+            $posts = DB::connection('mongodb')->table('posts')->where('public', 'yes')->orderBy('created_at', 'desc')->paginate(15);
             return response()->json($posts, 200);
-        } else {
-            // Retrieve all the public posts from everyone and private posts of authenticated user and his friends
-            $publicPosts = DB::table('posts')->where('public', 'yes');
-            $authenticatedUserPosts = User::find($authenticatedUser->id)->posts();
-            $privatePostsOfFriends = DB::table('posts')
-                ->join('users', 'users.id', '=', 'posts.user_id')
-                ->join('friends', 'users.id', '=', 'friends.user_id_1')
-                ->where('users.id', '!=', $authenticatedUser->id)
-                ->where('posts.public', 'no')
-                ->select('posts.*');
-            $union = $publicPosts->union($privatePostsOfFriends)->union($authenticatedUserPosts)->orderBy('created_at', 'desc');
-
-            // ---------------------------------------------------------------------------------------------------------
-
-            // Custom Paginator due the error/bug/not implemented paginated method after "unions"
-            $page = Input::get('page', 1);
-            $perPage = Input::get('perPage', 15);
-            $slice = array_slice($union->get()->toArray(), $perPage * ($page - 1), $perPage);
-
-            $data = new LengthAwarePaginator(
-                $slice,
-                count($slice),
-                $perPage,
-                Paginator::resolveCurrentPage(),
-                ['path' => Paginator::resolveCurrentPath()]);
-
-            return response()->json($data, 200);
         }
+
+        // Retrieve all the public posts from everyone and private posts of authenticated user and his friends
+        $publicPosts = DB::table('posts')->where('public', 'yes');
+
+        $authenticatedUserPosts = DB::connection('mongodb')
+            ->table('posts')
+            ->where('user_id', $authenticatedUser->id);
+
+        $privatePostsOfFriends = DB::table('posts')
+            ->join('users', 'users.id', '=', 'posts.user_id')
+            ->join('friends', 'users.id', '=', 'friends.user_id_1')
+            ->where('users.id', '!=', $authenticatedUser->id)
+            ->where('posts.public', 'no')
+            ->select('posts.*');
+
+        $posts = $authenticatedUserPosts
+            ->union($publicPosts)
+            ->union($privatePostsOfFriends)
+            ->orderBy('created_at', 'desc');
+
+        // ---------------------------------------------------------------------------------------------------------
+
+        // Custom Paginator due the error/bug/not implemented paginated method after "unions"
+        $page = Input::get('page', 1);
+        $perPage = Input::get('perPage', 15);
+        $slice = array_slice($posts->get()->toArray(), $perPage * ($page - 1), $perPage);
+
+        $data = new LengthAwarePaginator(
+            $slice,
+            count($slice),
+            $perPage,
+            Paginator::resolveCurrentPage(),
+            ['path' => Paginator::resolveCurrentPath()]);
+
+        return response()->json($data, 200);
+
     }
 }
