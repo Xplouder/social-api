@@ -224,7 +224,7 @@ class UsersController extends Controller
         $posts = null;
         if (!$authenticatedUser) {
             // Retrieve all the public posts from everyone
-            $posts = DB::connection('mongodb')->table('posts')->where('public', 'yes')->orderBy('created_at', 'desc');
+            $posts = Post::where('public', 'yes')->orderBy('created_at', 'desc')->get()->toArray();
         } else {
 
             // Retrieve all the public posts from everyone and private posts of authenticated user and his friends
