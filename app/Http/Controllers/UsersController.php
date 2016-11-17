@@ -39,6 +39,22 @@ class UsersController extends Controller
      */
     public function show($id, Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'perPage' => 'int',
+            'page' => 'int'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation Failed',
+                'errors' => $validator->errors()->all()
+            ], 422);
+        }
+
+        $perPage = (int) Input::get('perPage', 15);
+
+        // -------------------------------------------------------------------------------------------------------------
+
         $user = User::find($id);
 
         if (!$user) {
@@ -61,14 +77,14 @@ class UsersController extends Controller
                 $postsWithPagination = $user
                     ->posts()
                     ->orderBy('created_at', 'desc')
-                    ->paginate($request['perPage']);
+                    ->paginate($perPage);
             } else if (User::find($authenticatedUser->id)->friends()->find($user->id)) { // consulting a friend posts
                 // friends
                 // all the posts (public + private)
                 $postsWithPagination = $user
                     ->posts()
                     ->orderBy('created_at', 'desc')
-                    ->paginate($request['perPage']);
+                    ->paginate($perPage);
             } else { // not friends
                 // not friends
                 // only public posts
@@ -76,7 +92,7 @@ class UsersController extends Controller
                     ->posts()
                     ->orderBy('created_at', 'desc')
                     ->where('public', '=', 'yes')
-                    ->paginate($request['perPage']);
+                    ->paginate($perPage);
             }
         } else {
             // not authenticated
@@ -85,7 +101,7 @@ class UsersController extends Controller
                 ->posts()
                 ->orderBy('created_at', 'desc')
                 ->where('public', '=', 'yes')
-                ->paginate($request['perPage']);
+                ->paginate($perPage);
         }
 
         // remove 'posts' relation
@@ -177,56 +193,71 @@ class UsersController extends Controller
      * <b>Optional</b>: You can add <b>Authorization: Bearer YOUR_TOKEN</b> to your headers.
      * </aside>
      *
+     * @param Request $request
      * @return JsonResponse
      */
-    public function feed()
+    public function feed(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'perPage' => 'int',
+            'page' => 'int'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation Failed',
+                'errors' => $validator->errors()->all()
+            ], 422);
+        }
+
+        $page = (int) Input::get('page', 1);
+        $perPage = (int) Input::get('perPage', 15);
+
+        // -------------------------------------------------------------------------------------------------------------
 
         $authenticatedUser = null;
         if (JWTAuth::getToken()) {
             $authenticatedUser = JWTAuth::parseToken()->authenticate();
         }
 
+        $posts = null;
         if (!$authenticatedUser) {
             // Retrieve all the public posts from everyone
-            $posts = DB::connection('mongodb')->table('posts')->where('public', 'yes')->orderBy('created_at', 'desc')->paginate(15);
-            return response()->json($posts, 200);
+            $posts = DB::connection('mongodb')->table('posts')->where('public', 'yes')->orderBy('created_at', 'desc');
+        } else {
+            // Retrieve all the public posts from everyone and private posts of authenticated user and his friends
+            $publicPosts = DB::table('posts')->where('public', 'yes');
+
+            $authenticatedUserPosts = DB::connection('mongodb')
+                ->table('posts')
+                ->where('user_id', $authenticatedUser->id);
+
+            $privatePostsOfFriends = DB::table('posts')
+                ->join('users', 'users.id', '=', 'posts.user_id')
+                ->join('friends', 'users.id', '=', 'friends.user_id_1')
+                ->where('users.id', '!=', $authenticatedUser->id)
+                ->where('posts.public', 'no')
+                ->select('posts.*');
+
+            $posts = $authenticatedUserPosts
+                ->union($publicPosts)
+                ->union($privatePostsOfFriends)
+                ->orderBy('created_at', 'desc');
         }
-
-        // Retrieve all the public posts from everyone and private posts of authenticated user and his friends
-        $publicPosts = DB::table('posts')->where('public', 'yes');
-
-        $authenticatedUserPosts = DB::connection('mongodb')
-            ->table('posts')
-            ->where('user_id', $authenticatedUser->id);
-
-        $privatePostsOfFriends = DB::table('posts')
-            ->join('users', 'users.id', '=', 'posts.user_id')
-            ->join('friends', 'users.id', '=', 'friends.user_id_1')
-            ->where('users.id', '!=', $authenticatedUser->id)
-            ->where('posts.public', 'no')
-            ->select('posts.*');
-
-        $posts = $authenticatedUserPosts
-            ->union($publicPosts)
-            ->union($privatePostsOfFriends)
-            ->orderBy('created_at', 'desc');
 
         // ---------------------------------------------------------------------------------------------------------
 
         // Custom Paginator due the error/bug/not implemented paginated method after "unions"
-        $page = Input::get('page', 1);
-        $perPage = Input::get('perPage', 15);
         $slice = array_slice($posts->get()->toArray(), $perPage * ($page - 1), $perPage);
 
-        $data = new LengthAwarePaginator(
+        $response = new LengthAwarePaginator(
             $slice,
             count($slice),
             $perPage,
             Paginator::resolveCurrentPage(),
             ['path' => Paginator::resolveCurrentPath()]);
 
-        return response()->json($data, 200);
+        return response()->json($response, 200);
 
     }
 }
