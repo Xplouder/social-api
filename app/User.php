@@ -22,7 +22,7 @@ class User extends Model
 
     protected $fillable = ['name', 'email', 'password', 'social'];
 
-    protected $hidden = ['password'];
+    protected $hidden = ['password', 'pivot'];
 
     protected $dates = ['deleted_at'];
 

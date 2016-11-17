@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Post;
 use App\User;
 use Hash;
 use Illuminate\Http\JsonResponse;
@@ -51,7 +52,7 @@ class UsersController extends Controller
             ], 422);
         }
 
-        $perPage = (int) Input::get('perPage', 15);
+        $perPage = (int)Input::get('perPage', 15);
 
         // -------------------------------------------------------------------------------------------------------------
 
@@ -210,8 +211,8 @@ class UsersController extends Controller
             ], 422);
         }
 
-        $page = (int) Input::get('page', 1);
-        $perPage = (int) Input::get('perPage', 15);
+        $page = (int)Input::get('page', 1);
+        $perPage = (int)Input::get('perPage', 15);
 
         // -------------------------------------------------------------------------------------------------------------
 
@@ -225,30 +226,38 @@ class UsersController extends Controller
             // Retrieve all the public posts from everyone
             $posts = DB::connection('mongodb')->table('posts')->where('public', 'yes')->orderBy('created_at', 'desc');
         } else {
+
             // Retrieve all the public posts from everyone and private posts of authenticated user and his friends
-            $publicPosts = DB::table('posts')->where('public', 'yes');
+            $publicPosts = Post::where('public', 'yes');
 
-            $authenticatedUserPosts = DB::connection('mongodb')
-                ->table('posts')
-                ->where('user_id', $authenticatedUser->id);
+            // ----------
 
-            $privatePostsOfFriends = DB::table('posts')
-                ->join('users', 'users.id', '=', 'posts.user_id')
-                ->join('friends', 'users.id', '=', 'friends.user_id_1')
-                ->where('users.id', '!=', $authenticatedUser->id)
-                ->where('posts.public', 'no')
-                ->select('posts.*');
+            $authenticatedUserPosts = Post::where('user_id', $authenticatedUser->id);
 
-            $posts = $authenticatedUserPosts
-                ->union($publicPosts)
-                ->union($privatePostsOfFriends)
-                ->orderBy('created_at', 'desc');
+            // ----------
+
+            $privateFriends = User::find($authenticatedUser->id)->friends()->select('id')->get();
+            $privateFriendsArray = [];
+            foreach ($privateFriends as $friend) {
+                array_push($privateFriendsArray, $friend->id);
+            }
+
+            $friendsPrivatePosts = Post::where('public', 'no')
+                ->whereIn('user_id', $privateFriendsArray);
+
+            // ----------
+
+            $posts = $publicPosts->union($authenticatedUserPosts);
+
+            $posts = array_merge($posts->get()->toArray(), $friendsPrivatePosts->get()->toArray());
+
+            usort($posts, array($this, "sortFunction"));
         }
 
         // ---------------------------------------------------------------------------------------------------------
 
         // Custom Paginator due the error/bug/not implemented paginated method after "unions"
-        $slice = array_slice($posts->get()->toArray(), $perPage * ($page - 1), $perPage);
+        $slice = array_slice($posts, $perPage * ($page - 1), $perPage);
 
         $response = new LengthAwarePaginator(
             $slice,
@@ -259,5 +268,10 @@ class UsersController extends Controller
 
         return response()->json($response, 200);
 
+    }
+
+    private function sortFunction($a, $b)
+    {
+        return strtotime($b["created_at"]) - strtotime($a["created_at"]);
     }
 }
