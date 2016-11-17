@@ -23,7 +23,7 @@ API for a Social Application
 
 <!-- END_INFO -->
 
-#general
+# Endpoints
 <!-- START_23c93a28f85a61981c10370dac908b7c -->
 ## Global Feed
 
