@@ -12,5 +12,5 @@ Simple API able to simulate basic relationships between users and user's posts.
 - MySQL and MongoDB working together
 
 #### Demo: 
-Documentation: https://thing-pink-challenge.herokuapp.com
-Root Endpoint: https://thing-pink-challenge.herokuapp.com/api/v1
+- Documentation: https://thing-pink-challenge.herokuapp.com
+- Root Endpoint: https://thing-pink-challenge.herokuapp.com/api/v1
